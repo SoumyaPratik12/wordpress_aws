@@ -6,7 +6,6 @@ infra/backend.hcl
 *.tfstate
 *.tfstate.backup
 *.tfstate.lock.info
-.terraform.lock.hcl
 
 # Sensitive variable files
 *.tfvars
