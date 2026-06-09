@@ -9,7 +9,9 @@ terraform {
   }
 
   backend "s3" {
-    # bucket and dynamodb_table are supplied via backend.hcl (partial config)
+    # bucket and dynamodb_table are supplied via backend.hcl (partial config, git-ignored)
+    # Expected bucket:  wp-platform-tf
+    # Expected table:   wp-platform-tflock
     # Run: terraform init -backend-config=backend.hcl
     key     = "dev/terraform.tfstate"
     region  = "ap-south-1"
