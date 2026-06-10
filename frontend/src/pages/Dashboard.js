@@ -1,85 +1,152 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSites, createSite } from "../api";
+import {
+  Globe, ShieldCheck, Database, TrendingUp,
+  Plus, ExternalLink, RefreshCw, Search
+} from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
+import { MOCK_SITES, MOCK_STATS } from "../mockData";
+
+function StatCard({ icon: Icon, label, value, color }) {
+  return (
+    <div className="stat-card">
+      <div className="stat-icon" style={{ background: color }}>
+        <Icon size={20} color="#fff" />
+      </div>
+      <div>
+        <div className="stat-value">{value}</div>
+        <div className="stat-label">{label}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const [sites, setSites] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [sites] = useState(MOCK_SITES);
+  const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", domain: "" });
-  const [creating, setCreating] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    getSites()
-      .then(setSites)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  async function handleCreate(e) {
-    e.preventDefault();
-    setCreating(true);
-    try {
-      const site = await createSite(form);
-      setSites((prev) => [site, ...prev]);
-      setShowForm(false);
-      setForm({ name: "", domain: "" });
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setCreating(false);
-    }
-  }
+  const filtered = sites.filter(
+    (s) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.domain.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div>
-      <div className="page-header">
-        <h1>Sites</h1>
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "+ New Site"}
-        </button>
+      {/* Stats row */}
+      <div className="stats-row">
+        <StatCard icon={Globe}       label="Total Sites"    value={MOCK_STATS.totalSites}  color="#2563eb" />
+        <StatCard icon={ShieldCheck} label="Active Sites"   value={MOCK_STATS.activeSites} color="#16a34a" />
+        <StatCard icon={Database}    label="Total Backups"  value={MOCK_STATS.totalBackups} color="#7c3aed" />
+        <StatCard icon={TrendingUp}  label="Avg Uptime"     value={MOCK_STATS.avgUptime}   color="#d97706" />
       </div>
 
-      {showForm && (
-        <form className="card form-card" onSubmit={handleCreate}>
-          <h2>Add a site</h2>
-          <label>Site name
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          </label>
-          <label>Domain / IP
-            <input value={form.domain} placeholder="e.g. 65.2.205.51" onChange={(e) => setForm({ ...form, domain: e.target.value })} required />
-          </label>
-          <button className="btn-primary" type="submit" disabled={creating}>
-            {creating ? "Creating…" : "Create"}
+      {/* Toolbar */}
+      <div className="toolbar">
+        <div className="search-wrap">
+          <Search size={15} className="search-icon" />
+          <input
+            className="search-input"
+            placeholder="Search sites…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="toolbar-right">
+          <button className="btn-ghost" title="Refresh">
+            <RefreshCw size={15} />
           </button>
-        </form>
+          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+            <Plus size={15} />
+            New Site
+          </button>
+        </div>
+      </div>
+
+      {/* New site form */}
+      {showForm && (
+        <div className="card form-card">
+          <h2>Connect a site</h2>
+          <div className="form-row">
+            <label>
+              Site name
+              <input
+                value={form.name}
+                placeholder="My WordPress Blog"
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </label>
+            <label>
+              Domain / IP
+              <input
+                value={form.domain}
+                placeholder="65.2.205.51 or example.com"
+                onChange={(e) => setForm({ ...form, domain: e.target.value })}
+              />
+            </label>
+          </div>
+          <div className="form-actions">
+            <button className="btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
+            <button className="btn-primary">
+              <Plus size={14} /> Add Site
+            </button>
+          </div>
+        </div>
       )}
 
-      {error && <div className="alert-error">{error}</div>}
-
-      {loading ? (
-        <p className="muted">Loading sites…</p>
-      ) : sites.length === 0 ? (
-        <div className="empty-state">
-          <p>No sites yet. Click <strong>+ New Site</strong> to connect your first WordPress site.</p>
-        </div>
-      ) : (
-        <div className="site-grid">
-          {sites.map((s) => (
-            <div key={s.siteId} className="card site-card" onClick={() => navigate(`/sites/${s.siteId}`)}>
-              <div className="site-card-header">
-                <h3>{s.name}</h3>
-                <StatusBadge status={s.status} />
-              </div>
-              <p className="muted">{s.domain}</p>
-              <p className="site-card-date">Added {new Date(s.createdAt).toLocaleDateString()}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Sites table */}
+      <div className="card">
+        <table className="sites-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Domain</th>
+              <th>Status</th>
+              <th>Uptime</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="empty-row">No sites match your search.</td>
+              </tr>
+            ) : (
+              filtered.map((s) => (
+                <tr
+                  key={s.siteId}
+                  className="site-row"
+                  onClick={() => navigate(`/sites/${s.siteId}`)}
+                >
+                  <td className="site-name">{s.name}</td>
+                  <td className="site-domain">
+                    <Globe size={13} className="domain-icon" />
+                    {s.domain}
+                  </td>
+                  <td><StatusBadge status={s.status} /></td>
+                  <td className="uptime">{s.uptime}</td>
+                  <td className="muted">{new Date(s.createdAt).toLocaleDateString()}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <a
+                      href={`http://${s.domain}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn-icon"
+                      title="Open site"
+                    >
+                      <ExternalLink size={14} />
+                    </a>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

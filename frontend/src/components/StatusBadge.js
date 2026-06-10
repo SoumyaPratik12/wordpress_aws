@@ -1,27 +1,28 @@
 import React from "react";
 
-const COLOR = {
-  active: "#16a34a",
-  pending: "#d97706",
-  provisioning: "#2563eb",
-  installing: "#7c3aed",
-  configuring_dns: "#0891b2",
-  failed: "#dc2626",
-  completed: "#16a34a",
+const STYLES = {
+  active:           { bg: "#dcfce7", color: "#15803d" },
+  pending:          { bg: "#fef9c3", color: "#a16207" },
+  provisioning:     { bg: "#dbeafe", color: "#1d4ed8" },
+  installing:       { bg: "#ede9fe", color: "#6d28d9" },
+  configuring_dns:  { bg: "#e0f2fe", color: "#0369a1" },
+  failed:           { bg: "#fee2e2", color: "#b91c1c" },
+  completed:        { bg: "#dcfce7", color: "#15803d" },
 };
 
 export default function StatusBadge({ status }) {
-  const color = COLOR[status] || "#6b7280";
+  const s = STYLES[status] || { bg: "#f1f5f9", color: "#475569" };
   return (
     <span style={{
-      background: color,
-      color: "#fff",
-      padding: "2px 10px",
-      borderRadius: 12,
+      background: s.bg,
+      color: s.color,
+      padding: "3px 10px",
+      borderRadius: 20,
       fontSize: 12,
       fontWeight: 600,
       textTransform: "capitalize",
       whiteSpace: "nowrap",
+      display: "inline-block",
     }}>
       {status?.replace(/_/g, " ") || "unknown"}
     </span>
