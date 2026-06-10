@@ -1,9 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Globe } from "lucide-react";
+import { LayoutDashboard, LogOut } from "lucide-react";
 
-export default function Navbar() {
+export default function Navbar({ user, onSignOut }) {
   const location = useLocation();
+  const email = user?.signInDetails?.loginId || "";
+  const initials = email.slice(0, 2).toUpperCase();
+
   return (
     <nav className="navbar">
       <div className="navbar-left">
@@ -18,7 +21,11 @@ export default function Navbar() {
       </div>
       <div className="navbar-right">
         <span className="nav-env-badge">dev</span>
-        <div className="nav-avatar">SP</div>
+        <span className="nav-email">{email}</span>
+        <div className="nav-avatar">{initials}</div>
+        <button className="btn-signout" onClick={onSignOut} title="Sign out">
+          <LogOut size={14} />
+        </button>
       </div>
     </nav>
   );
